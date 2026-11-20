@@ -28,27 +28,43 @@
   padding-bottom: 14px;
 }
 
-/* ---- section headings (categories) ---- */
+/* ---- section headings (categories), each category its own color ---- */
 .post-content h2 {
+  --cat: var(--accent);
   font-size: 22px;
   margin: 44px 0 16px;
   padding: 10px 16px;
-  background: var(--accent-soft);
-  border-left: 4px solid var(--accent);
+  background: color-mix(in srgb, var(--cat) 10%, transparent);
+  border-left: 4px solid var(--cat);
   border-radius: 0 10px 10px 0;
   line-height: 1.45;
 }
+/* order in a post: 1 摘要 / 2 技术报告 / 3 arXiv 论文 / 4 行业新闻 / 5 X 动态 / 6 热点 / 7+ 核验与来源 */
+.post-content h2:nth-of-type(1) { --cat: #64748b; }
+.post-content h2:nth-of-type(2) { --cat: #2563eb; }
+.post-content h2:nth-of-type(3) { --cat: #7c3aed; }
+.post-content h2:nth-of-type(4) { --cat: #0f766e; }
+.post-content h2:nth-of-type(5) { --cat: #0284c7; }
+.post-content h2:nth-of-type(6) { --cat: #e11d48; }
+.post-content h2:nth-of-type(n+7) { --cat: #94a3b8; }
+.dark .post-content h2:nth-of-type(1) { --cat: #94a3b8; }
+.dark .post-content h2:nth-of-type(2) { --cat: #60a5fa; }
+.dark .post-content h2:nth-of-type(3) { --cat: #a78bfa; }
+.dark .post-content h2:nth-of-type(4) { --cat: #2dd4bf; }
+.dark .post-content h2:nth-of-type(5) { --cat: #38bdf8; }
+.dark .post-content h2:nth-of-type(6) { --cat: #fb7185; }
+.dark .post-content h2:nth-of-type(n+7) { --cat: #64748b; }
 .post-content h2:first-of-type {
   margin-top: 30px;
 }
 
-/* summary: first section's first paragraph becomes a soft card */
-.post-content h2:first-of-type + p {
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px 20px;
-  font-size: 15.5px;
+/* summary is written as a blockquote callout (see blockquote rules below);
+   its points are separate paragraphs inside the quote */
+.post-content blockquote p {
+  margin-bottom: 10px;
+}
+.post-content blockquote p:last-child {
+  margin-bottom: 0;
 }
 
 /* ---- item headings & meta ---- */
@@ -87,6 +103,8 @@
   border-radius: 999px;
   padding: 3px 14px;
   box-shadow: none;
+  text-decoration: none;
+  border-bottom: none;
   transition: background 0.15s ease, color 0.15s ease;
 }
 .post-content p:has(> a:only-child) > a:hover {
