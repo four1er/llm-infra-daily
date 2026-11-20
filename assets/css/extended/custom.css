@@ -106,9 +106,63 @@
   text-underline-offset: 2px;
 }
 
-/* lists a bit tighter */
+/* ---- lists: airy, segmented ---- */
+.post-content ul,
+.post-content ol {
+  margin: 10px 0 20px;
+  padding-inline-start: 26px;
+}
 .post-content li {
+  margin-bottom: 11px;
+  line-height: 1.8;
+}
+.post-content li:last-child {
+  margin-bottom: 0;
+}
+.post-content li::marker {
+  color: var(--accent);
+  font-weight: 700;
+}
+.post-content li > p {
   margin-bottom: 6px;
+}
+/* nested detail lists get a soft panel feel */
+.post-content ul ul,
+.post-content ol ul {
+  margin-top: 8px;
+}
+
+/* quotes as callouts */
+.post-content blockquote {
+  border-inline-start: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 10px 10px 0;
+  padding: 12px 18px;
+  margin: 18px 0;
+  color: var(--primary);
+}
+
+.post-content hr {
+  border: none;
+  border-top: 1px dashed var(--border);
+  margin: 34px 0;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+/* post header polish */
+.post-title {
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+.post-meta {
+  font-size: 13.5px;
+}
+/* table of contents box */
+.toc {
+  border-radius: 12px;
 }
 
 /* tables (if any remain) */
