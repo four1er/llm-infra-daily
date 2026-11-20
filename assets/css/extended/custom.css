@@ -1,0 +1,130 @@
+/* LLM Infra Daily — typography & layout polish on top of PaperMod */
+
+:root {
+  --accent: #4f46e5;
+  --accent-soft: rgba(79, 70, 229, 0.08);
+}
+.dark {
+  --accent: #a5b4fc;
+  --accent-soft: rgba(165, 180, 252, 0.10);
+}
+
+/* ---- post typography ---- */
+.post-content {
+  font-size: 16.5px;
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+}
+.post-content p {
+  margin-bottom: 14px;
+}
+
+/* window/intro line at the very top of a post */
+.post-content > p:first-of-type {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--secondary);
+  border-bottom: 1px dashed var(--border);
+  padding-bottom: 14px;
+}
+
+/* ---- section headings (categories) ---- */
+.post-content h2 {
+  font-size: 22px;
+  margin: 44px 0 16px;
+  padding: 10px 16px;
+  background: var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  line-height: 1.45;
+}
+.post-content h2:first-of-type {
+  margin-top: 30px;
+}
+
+/* summary: first section's first paragraph becomes a soft card */
+.post-content h2:first-of-type + p {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 15.5px;
+}
+
+/* ---- item headings & meta ---- */
+.post-content h3 {
+  font-size: 18.5px;
+  line-height: 1.55;
+  margin: 34px 0 8px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.post-content h3:first-of-type {
+  border-top: none;
+  padding-top: 4px;
+}
+/* the 来源：… ｜ 时间：… line right after an item title */
+.post-content h3 + p {
+  font-size: 13.8px;
+  line-height: 1.7;
+  color: var(--secondary);
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+.post-content h3 + p strong {
+  color: var(--primary);
+}
+
+/* standalone 原文链接 paragraph becomes a small button */
+.post-content p:has(> a:only-child) > a {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 3px 14px;
+  box-shadow: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.post-content p:has(> a:only-child) > a:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ---- references / verification notes: small print ---- */
+.post-content small {
+  font-size: 12.8px;
+  line-height: 1.65;
+  color: var(--secondary);
+}
+.post-content li small a {
+  color: var(--secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* lists a bit tighter */
+.post-content li {
+  margin-bottom: 6px;
+}
+
+/* tables (if any remain) */
+.post-content table {
+  font-size: 14px;
+  display: block;
+  overflow-x: auto;
+}
+.post-content table th {
+  background: var(--code-bg);
+}
+
+/* home list entries */
+.post-entry {
+  border-radius: 14px;
+}
+.entry-content {
+  line-height: 1.7;
+}
