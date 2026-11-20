@@ -1,5 +1,7 @@
 # llm-infra-daily
 
+网站：https://four1er.github.io/llm-infra-daily/
+
 LLM infrastructure 每日汇总网站：每天早上 9:00（Asia/Shanghai）汇总最近 24 小时内的最新内容，覆盖
 
 1. 技术报告（实验室/公司工程博客、系统报告）
