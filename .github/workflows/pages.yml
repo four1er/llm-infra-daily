@@ -19,17 +19,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
         with:
-          python-version: "3.12"
-      - name: Install dependencies
-        run: pip install markdown
+          hugo-version: "0.170.1"
+          extended: true
+      - name: Fetch PaperMod theme
+        run: git clone --depth 1 https://github.com/adityatelange/hugo-PaperMod themes/PaperMod
       - name: Build site
-        run: python scripts/build_site.py
+        run: hugo --minify
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: public
   deploy:
     needs: build
     runs-on: ubuntu-latest
