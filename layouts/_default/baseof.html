@@ -154,6 +154,21 @@ small a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
 .arch-title{font-family:"Noto Serif SC",serif;font-weight:700;font-size:18px;line-height:1.5;margin:6px 0 8px}
 .arch-more{font-size:13.5px;font-weight:700;color:var(--amber-dark)}
 
+/* home edition list */
+.edition-list{margin-top:26px}
+.edition-card{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow);padding:22px 26px 18px;margin-bottom:16px;text-decoration:none;color:var(--ink);
+  transition:transform .18s,box-shadow .18s}
+.edition-card:hover{transform:translateY(-2px)}
+.edition-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.mini-stats{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.mini-stat b{font-size:15px}
+.mini-stat.s-tech b{color:var(--tech)} .mini-stat.s-paper b{color:var(--paper)}
+.mini-stat.s-ind b{color:var(--ind)} .mini-stat.s-x b{color:var(--x)} .mini-stat.s-hot b{color:var(--hot)}
+.edition-title{font-family:"Noto Serif SC",serif;font-weight:900;font-size:22px;line-height:1.45;margin:12px 0 8px}
+.edition-lede{font-size:15px;line-height:1.8;color:var(--muted)}
+.edition-card .arch-more{margin-top:12px}
+
 /* list pages (archives / tags) */
 .list-card{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;
   box-shadow:var(--shadow);padding:20px 26px;margin-bottom:14px;text-decoration:none;color:var(--ink)}

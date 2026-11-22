@@ -1,10 +1,62 @@
 {{ define "main" }}
 {{ $posts := where .Site.RegularPages "Section" "posts" }}
 {{ $posts = sort $posts "Date" "desc" }}
+{{ $labels := slice "技术报告" "arXiv 论文" "行业新闻" "X 动态" "热点新闻" }}
+{{ $keys := slice "tech" "paper" "ind" "x" "hot" }}
+
 {{ if $posts }}
   {{ $latest := index $posts 0 }}
-  {{ partial "digest.html" (dict "page" $latest) }}
-  {{ partial "archive.html" (after 1 $posts) }}
+  {{ $wd := index (slice "星期日" "星期一" "星期二" "星期三" "星期四" "星期五" "星期六") (int $latest.Date.Weekday) }}
+  <div class="pipeline">
+    <span class="dot"></span>
+    <span>管线运行中 · 每日 09:00（Asia/Shanghai）自动汇总并同步聊天 / Muse 组件 / GitHub 站 · 下一期 {{ $latest.Date.AddDate 0 0 1 | dateFormat "2006-01-02" }} 09:00</span>
+  </div>
+
+  <header class="hero">
+    <div class="kicker">LLM Infrastructure · 每日汇总</div>
+    <h1>LLM 基础设施日报</h1>
+    <p class="lede">每天早上 9:00 汇总最近 24 小时 LLM 基础设施领域的最新内容：技术报告、arXiv 论文、行业新闻、X 动态与热点。主题聚焦训练与推理系统、KV cache、serving 框架（vLLM、SGLang、TensorRT-LLM）、GPU 硬件与集群、量化与长上下文。每条给出标题、来源、发布时间、一句话要点和原文链接；无法核实的信息明确标注，不编造。</p>
+    <div class="meta-row">
+      <span class="pill dark">已发布 {{ len $posts }} 期</span>
+      <span class="pill">最新一期：{{ $latest.Date.Format "2006年1月2日" }} · {{ $wd }}</span>
+      <span class="pill green">✓ 每条附原文链接</span>
+    </div>
+  </header>
+
+  <div class="search"><input id="home-search" type="search" placeholder="搜索往期日报（标题 / 日期）…" autocomplete="off"></div>
+
+  <div class="edition-list" id="edition-list">
+    {{ range $posts }}
+    <a class="edition-card" href="{{ .RelPermalink }}">
+      <div class="edition-top">
+        <span class="pill dark">{{ .Date.Format "2006-01-02" }}</span>
+        {{ with .Params.counts }}
+        <span class="mini-stats">
+          {{ range $i, $c := . }}
+          <span class="mini-stat s-{{ index $keys $i }}"><b>{{ $c }}</b> {{ index $labels $i }}</span>
+          {{ end }}
+        </span>
+        {{ end }}
+      </div>
+      <div class="edition-title">{{ .Params.headline | default .Title }}</div>
+      {{ with .Params.lede }}<div class="edition-lede">{{ . }}</div>{{ end }}
+      <div class="arch-more">查看本期 →</div>
+    </a>
+    {{ end }}
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var input = document.getElementById('home-search');
+    if (!input) return;
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase();
+      document.querySelectorAll('.edition-card').forEach(function (c) {
+        c.style.display = (!q || c.textContent.toLowerCase().indexOf(q) >= 0) ? '' : 'none';
+      });
+    });
+  });
+  </script>
 {{ else }}
   <p class="notice">暂无日报。</p>
 {{ end }}
