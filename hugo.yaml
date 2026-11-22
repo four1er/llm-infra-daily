@@ -1,6 +1,5 @@
 baseURL: "https://four1er.github.io/llm-infra-daily/"
 title: "LLM Infrastructure 日报"
-theme: PaperMod
 languageCode: zh-cn
 defaultContentLanguage: zh
 enableRobotsTXT: true
@@ -9,65 +8,28 @@ outputs:
   home:
     - HTML
     - RSS
-    - JSON
 
 params:
   env: production
   description: "每天早上 9:00 更新：最近 24 小时 LLM infrastructure 领域的技术报告、论文、行业新闻、X 动态与热点，中文汇总，每条附原文链接。"
   author: "four1er"
-  defaultTheme: auto
-  ShowReadingTime: true
-  ShowShareButtons: false
-  ShowPostNavLinks: true
-  ShowBreadCrumbs: true
-  ShowCodeCopyButtons: true
-  ShowToc: true
-  TocOpen: false
   mainSections:
     - posts
-  homeInfoParams:
-    Title: "LLM Infrastructure 日报"
-    Content: "每天早上 9:00（Asia/Shanghai）汇总最近 24 小时内 LLM infrastructure 领域的最新内容：技术报告、arXiv 论文、行业新闻、X 动态与热点。主题聚焦训练与推理系统、KV cache、serving 框架（vLLM、SGLang、TensorRT-LLM）、GPU 硬件与集群、量化与长上下文。每条给出标题、来源、发布时间、一句话要点和原文链接；无法核实的信息明确标注，不编造。"
-  socialIcons:
-    - name: github
-      url: "https://github.com/four1er/llm-infra-daily"
-    - name: rss
-      url: "index.xml"
-  editPost:
-    URL: "https://github.com/four1er/llm-infra-daily/tree/main/content"
-    Text: "在 GitHub 上查看"
-    appendFilePath: true
-  fuseOpts:
-    isCaseSensitive: false
-    shouldSort: true
-    location: 0
-    distance: 1000
-    threshold: 0.4
-    minMatchCharLength: 0
-    keys:
-      - title
-      - permalink
-      - summary
-      - content
 
 menu:
   main:
     - identifier: archives
       name: 归档
-      url: /archives/
+      url: /posts/
       weight: 10
-    - identifier: search
-      name: 搜索
-      url: /search/
-      weight: 20
     - identifier: tags
       name: 标签
       url: /tags/
-      weight: 30
+      weight: 20
     - identifier: github
       name: GitHub
       url: https://github.com/four1er/llm-infra-daily
-      weight: 40
+      weight: 30
 
 markup:
   goldmark:

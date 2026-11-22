@@ -1,0 +1,19 @@
+{{ define "main" }}
+<h1 class="page-title">{{ if eq .Kind "taxonomy" }}标签{{ else if eq .Kind "term" }}标签：{{ .Title }}{{ else }}归档{{ end }}</h1>
+{{ $pages := .Pages }}
+{{ if eq .Kind "taxonomy" }}
+  {{ range .Data.Terms.Alphabetical }}
+  <a class="list-card" href="{{ .Page.RelPermalink }}">
+    <div class="d">{{ .Count }} 篇</div>
+    <div class="t">{{ .Page.Title }}</div>
+  </a>
+  {{ end }}
+{{ else }}
+  {{ range sort $pages "Date" "desc" }}
+  <a class="list-card" href="{{ .RelPermalink }}">
+    <div class="d">{{ .Date.Format "2006-01-02" }}</div>
+    <div class="t">{{ .Params.headline | default .Title }}</div>
+  </a>
+  {{ end }}
+{{ end }}
+{{ end }}

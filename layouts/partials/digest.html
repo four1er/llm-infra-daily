@@ -1,0 +1,40 @@
+{{ $p := .page }}
+{{ $wd := index (slice "星期日" "星期一" "星期二" "星期三" "星期四" "星期五" "星期六") (int $p.Date.Weekday) }}
+<div class="pipeline">
+  <span class="dot"></span>
+  <span>管线运行中 · 每日 09:00（Asia/Shanghai）自动汇总并同步聊天 / Muse 组件 / GitHub 站 · 下一期 {{ $p.Date.AddDate 0 0 1 | dateFormat "2006-01-02" }} 09:00</span>
+</div>
+
+<header class="hero">
+  <div class="kicker">LLM Infrastructure · 每日汇总</div>
+  <h1>{{ $p.Params.headline | default $p.Title }}</h1>
+  {{ with $p.Params.lede }}<p class="lede" id="lede">{{ . }}</p>{{ else }}<p class="lede" id="lede"></p>{{ end }}
+  <div class="meta-row">
+    <span class="pill dark">{{ $p.Date.Format "2006年1月2日" }} · {{ $wd }}</span>
+    <span class="pill" id="window-text">窗口：运行前 24 小时</span>
+    <span class="pill green">✓ 已核验来源 · 每条附原文链接</span>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat s-tech" data-stat="tech"><div class="num">–</div><div class="lbl">技术报告</div></div>
+  <div class="stat s-paper" data-stat="paper"><div class="num">–</div><div class="lbl">arXiv 论文</div></div>
+  <div class="stat s-ind" data-stat="ind"><div class="num">–</div><div class="lbl">行业新闻</div></div>
+  <div class="stat s-x" data-stat="x"><div class="num">–</div><div class="lbl">X 动态</div></div>
+  <div class="stat s-hot" data-stat="hot"><div class="num">–</div><div class="lbl">热点新闻</div></div>
+</div>
+
+<div class="highlights" id="highlights">
+  <div class="hl-title">今日要点</div>
+  <ol id="highlights-list">
+    {{ range $p.Params.highlights }}<li>{{ . }}</li>{{ end }}
+  </ol>
+</div>
+
+<nav class="digest-nav" id="digest-nav"></nav>
+
+<div class="search"><input id="digest-search" type="search" placeholder="搜索本期内容…" autocomplete="off"></div>
+
+<main id="digest-sections"></main>
+
+<div class="raw-content">{{ $p.Content }}</div>

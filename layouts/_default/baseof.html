@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ if .IsHome }}LLM Infrastructure 日报{{ else }}{{ .Title }} · LLM Infrastructure 日报{{ end }}</title>
+<meta name="description" content="每天早上 9:00 更新：最近 24 小时 LLM infrastructure 领域的技术报告、论文、行业新闻、X 动态与热点，中文汇总，每条附原文链接。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+{{ with .OutputFormats.Get "RSS" }}<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="LLM Infrastructure 日报">{{ end }}
+<style>
+:root{
+  --bg:#faf6ee; --card:#fffdf8; --ink:#2b2620; --muted:#7a7264; --line:#e7ddc9;
+  --amber:#d9a420; --amber-dark:#b45309; --green:#15803d; --green-bg:#ecfdf5; --green-line:#bbf7d0;
+  --tech:#2563eb; --paper:#7c3aed; --ind:#0f766e; --x:#0284c7; --hot:#e11d48; --gray:#64748b;
+  --shadow:0 1px 2px rgba(87,70,30,.05),0 10px 30px rgba(87,70,30,.06);
+  --hl-bg:#1c1917; --hl-ink:#faf6ee;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#1d1a16; --card:#27231e; --ink:#ece7db; --muted:#a89f8d; --line:#403a30;
+    --amber:#f0b429; --amber-dark:#f0b429; --green:#4ade80; --green-bg:#12291c; --green-line:#1e4630;
+    --tech:#60a5fa; --paper:#a78bfa; --ind:#2dd4bf; --x:#38bdf8; --hot:#fb7185; --gray:#94a3b8;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.30);
+    --hl-bg:#ece7db; --hl-ink:#1c1917;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Noto Sans SC",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+a{color:var(--amber-dark)}
+.wrap{max-width:860px;margin:0 auto;padding:0 18px 60px}
+
+/* topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 2px 6px}
+.brand{font-family:"Noto Serif SC",serif;font-weight:900;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:.02em}
+.brand .dot{color:var(--amber)}
+.topbar nav a{color:var(--muted);text-decoration:none;font-size:14px;margin-left:18px}
+.topbar nav a:hover{color:var(--ink)}
+
+/* pipeline status bar */
+.pipeline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--green-bg);
+  border:1px solid var(--green-line);color:var(--green);border-radius:999px;
+  padding:7px 16px;font-size:13px;font-weight:500;margin:14px 0 22px}
+.pipeline .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none;
+  box-shadow:0 0 0 0 rgba(21,128,61,.5);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(21,128,61,.45)}70%{box-shadow:0 0 0 7px rgba(21,128,61,0)}100%{box-shadow:0 0 0 0 rgba(21,128,61,0)}}
+.pipeline a{color:var(--green);font-weight:700}
+
+/* hero */
+.hero{padding:8px 2px 4px}
+.kicker{font-size:12.5px;font-weight:700;letter-spacing:.32em;color:var(--amber-dark);text-transform:uppercase}
+.hero h1{font-family:"Noto Serif SC",serif;font-weight:900;font-size:clamp(30px,5.6vw,44px);
+  line-height:1.28;margin:12px 0 14px;letter-spacing:.01em}
+.lede{font-size:17px;line-height:1.85;color:var(--muted);margin:0 0 18px}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-block;font-size:13px;font-weight:500;color:var(--ink);
+  background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 13px}
+.pill.dark{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
+.pill.green{background:var(--green-bg);border-color:var(--green-line);color:var(--green);font-weight:600}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:24px 0 6px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+  padding:14px 10px 11px;text-align:center}
+.stat .num{font-family:"Noto Serif SC",serif;font-weight:900;font-size:30px;line-height:1.1}
+.stat .lbl{font-size:12.5px;color:var(--muted);margin-top:3px}
+.stat.s-tech .num{color:var(--tech)} .stat.s-paper .num{color:var(--paper)}
+.stat.s-ind .num{color:var(--ind)} .stat.s-x .num{color:var(--x)} .stat.s-hot .num{color:var(--hot)}
+@media (max-width:640px){.stats{grid-template-columns:repeat(3,1fr)}}
+
+/* highlights: black box */
+.highlights{background:var(--hl-bg);color:var(--hl-ink);border-radius:18px;
+  padding:22px 26px 18px;margin:22px 0 8px;box-shadow:var(--shadow)}
+.highlights .hl-title{font-family:"Noto Serif SC",serif;font-weight:900;font-size:18px;letter-spacing:.14em;margin-bottom:10px}
+.highlights ol{margin:0;padding-left:22px}
+.highlights li{margin-bottom:9px;line-height:1.8}
+.highlights li:last-child{margin-bottom:2px}
+.highlights li::marker{color:var(--amber);font-weight:700}
+
+/* sticky category nav */
+.digest-nav{position:sticky;top:10px;z-index:20;display:flex;gap:8px;flex-wrap:wrap;
+  margin:20px 0 6px;padding:8px;background:color-mix(in srgb,var(--bg) 86%,transparent);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:999px}
+.digest-nav a{font-size:13.5px;font-weight:600;color:var(--ink);text-decoration:none;
+  background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 14px}
+.digest-nav a:hover{border-color:var(--amber);color:var(--amber-dark)}
+.digest-nav a .n{color:var(--muted);font-weight:500;margin-left:4px}
+
+/* search */
+.search{margin:14px 0 4px}
+.search input{width:100%;font-size:15px;font-family:inherit;color:var(--ink);
+  background:var(--card);border:1px solid var(--line);border-radius:999px;padding:11px 20px;outline:none}
+.search input:focus{border-color:var(--amber)}
+
+/* sections */
+.sec{margin-top:38px}
+.sec-head{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+.sec-num{flex:none;width:30px;height:30px;border-radius:50%;color:#fff;font-weight:700;
+  font-size:14.5px;display:flex;align-items:center;justify-content:center}
+.sec-num.c-tech{background:var(--tech)} .sec-num.c-paper{background:var(--paper)}
+.sec-num.c-ind{background:var(--ind)} .sec-num.c-x{background:var(--x)}
+.sec-num.c-hot{background:var(--hot)} .sec-num.c-gray{background:var(--gray)}
+.sec-head h2{font-family:"Noto Serif SC",serif;font-weight:900;font-size:23px;margin:0;letter-spacing:.02em}
+
+/* item cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+  padding:22px 26px 20px;margin-bottom:16px}
+.card h3{font-size:18.5px;line-height:1.55;margin:0 0 10px;font-weight:700}
+.card h3 a{color:var(--ink);text-decoration:none}
+.card h3 a:hover{color:var(--amber-dark)}
+.card .meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:13.5px;color:var(--muted);margin-bottom:11px}
+.badge{font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px}
+.badge.ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-line)}
+.badge.warn{background:rgba(245,197,66,.16);color:var(--amber-dark);border:1px solid rgba(217,164,32,.45)}
+.card .takeaway p{margin:0 0 10px;line-height:1.85}
+.card .takeaway p:last-child{margin-bottom:0}
+.card .details-label{font-size:13px;color:var(--muted);margin:14px 0 4px}
+.card ul.details{margin:4px 0 6px;padding-left:22px}
+.card ul.details li{margin-bottom:8px;line-height:1.8}
+.card ul.details li::marker{color:var(--amber-dark);font-weight:700}
+.linkrow{display:flex;align-items:center;gap:12px;margin-top:15px}
+.btn{display:inline-block;font-size:14px;font-weight:700;color:var(--amber-dark);text-decoration:none;
+  border:1.5px solid var(--amber-dark);border-radius:999px;padding:4px 16px;transition:background .15s,color .15s}
+.btn:hover{background:var(--amber-dark);color:#fff8e6}
+.linkrow .url{font-size:12.5px;color:var(--muted)}
+
+/* empty-category notice */
+.notice{border:1.5px dashed var(--line);border-radius:18px;padding:18px 24px;color:var(--muted);
+  font-size:15px;line-height:1.8;background:color-mix(in srgb,var(--card) 55%,transparent)}
+.notice p{margin:0 0 8px}.notice p:last-child{margin-bottom:0}
+
+/* verification / sources */
+.excluded{border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--card) 60%,transparent);
+  padding:18px 24px 10px}
+.excluded ol,.excluded ul{margin:0;padding-left:22px}
+.excluded li{margin-bottom:10px}
+.sec.sources-sec .sec-body{font-size:13px}
+small{font-size:12.8px;line-height:1.65;color:var(--muted)}
+small a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+.fineprint{font-size:13px;color:var(--muted);line-height:1.7;margin-top:26px}
+
+/* archive */
+.archive{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.archive{grid-template-columns:1fr}}
+.arch-card{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow);padding:20px 24px;text-decoration:none;color:var(--ink);
+  transition:transform .18s,box-shadow .18s}
+.arch-card:hover{transform:translateY(-2px)}
+.arch-date{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.06em}
+.arch-title{font-family:"Noto Serif SC",serif;font-weight:700;font-size:18px;line-height:1.5;margin:6px 0 8px}
+.arch-more{font-size:13.5px;font-weight:700;color:var(--amber-dark)}
+
+/* list pages (archives / tags) */
+.list-card{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow);padding:20px 26px;margin-bottom:14px;text-decoration:none;color:var(--ink)}
+.list-card:hover{border-color:var(--amber)}
+.list-card .d{font-size:13px;color:var(--muted)}
+.list-card .t{font-family:"Noto Serif SC",serif;font-weight:700;font-size:19px;margin-top:4px;line-height:1.5}
+.page-title{font-family:"Noto Serif SC",serif;font-weight:900;font-size:30px;margin:20px 0 18px}
+
+footer{margin-top:52px;padding-top:20px;border-top:1px dashed var(--line);
+  color:var(--muted);font-size:13px;line-height:1.8;text-align:center}
+footer a{color:var(--muted)}
+.raw-content{display:none}
+</style>
+<noscript><style>.raw-content{display:block}.digest-nav,.search,.stats{display:none}</style></noscript>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <a class="brand" href="{{ .Site.BaseURL }}">LLM Infrastructure 日报<span class="dot">.</span></a>
+    <nav>
+      <a href="{{ "posts/" | relURL }}">归档</a>
+      <a href="{{ "tags/" | relURL }}">标签</a>
+      <a href="https://github.com/four1er/llm-infra-daily" target="_blank" rel="noopener">GitHub</a>
+      <a href="{{ "index.xml" | relURL }}">RSS</a>
+    </nav>
+  </header>
+  {{ block "main" . }}{{ end }}
+  <footer>
+    每日 09:00（Asia/Shanghai）自动汇总最近 24 小时 · 每条附原文链接 · 无法核实的信息明确标注，不编造<br>
+    <a href="https://github.com/four1er/llm-infra-daily">four1er/llm-infra-daily</a> · 由 Hugo 构建
+  </footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var raw = document.querySelector('.raw-content');
+  if (!raw) return;
+  var mount = document.getElementById('digest-sections');
+  if (!mount) return;
+  var CAT = {'技术报告':'tech','arXiv 论文':'paper','行业新闻':'ind','X 动态':'x','热点新闻':'hot'};
+  var counts = {tech:0, paper:0, ind:0, x:0, hot:0};
+  var navData = [];
+  var fineprint = [];
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  var kids = Array.prototype.slice.call(raw.children);
+  // window line + verification-time line
+  var rest = [];
+  kids.forEach(function (k) {
+    var t = (k.textContent || '').trim();
+    if (k.tagName === 'P' && t.indexOf('窗口') === 0) {
+      var w = document.getElementById('window-text');
+      if (w) w.textContent = t.replace(/^窗口（严格执行）：/, '窗口：');
+    } else if (k.tagName === 'P' && t.indexOf('检索与核验时间') === 0) {
+      fineprint.push(k);
+    } else { rest.push(k); }
+  });
+
+  var summaryPoints = [];
+  var current = null; // {section, body, catKey, name}
+  var card = null;
+
+  function newSection(name) {
+    var sec = el('section', 'sec');
+    var key = CAT[name] || 'gray';
+    sec.id = 'sec-' + key;
+    if (name.indexOf('来源清单') === 0) sec.classList.add('sources-sec');
+    var head = el('div', 'sec-head');
+    var num = el('span', 'sec-num c-' + key, '');
+    num.dataset.role = 'secnum';
+    var h2 = el('h2', null, name);
+    head.appendChild(num); head.appendChild(h2);
+    var body = el('div', 'sec-body');
+    if (name.indexOf('未能核实') === 0) {
+      var box = el('div', 'excluded'); body.appendChild(box); body = box;
+      sec.dataset.kind = 'excluded';
+    }
+    sec.appendChild(head); sec.appendChild(body.parentNode === sec ? body : body);
+    if (sec.dataset.kind === 'excluded') { /* body already nested */ }
+    mount.appendChild(sec);
+    navData.push({id: sec.id, name: name, key: key});
+    return {section: sec, body: body, catKey: key, name: name, cards: 0, numEl: num};
+  }
+
+  function finishCard() { card = null; }
+
+  function makeCard(h3) {
+    var c = el('article', 'card searchable');
+    c.appendChild(h3);
+    current.body.appendChild(c);
+    current.cards++;
+    if (counts.hasOwnProperty(current.catKey)) counts[current.catKey]++;
+    return c;
+  }
+
+  function handleMeta(p, cardEl) {
+    var text = (p.textContent || '').replace(/\s+/g, ' ').trim();
+    var badge = null;
+    var bi = text.indexOf('⚠️');
+    if (bi >= 0) {
+      var btext = text.slice(bi + 2).trim();
+      btext = btext.split(/[，。；]/)[0];
+      badge = {cls: 'warn', text: '⚠ ' + btext};
+      text = text.slice(0, bi).trim();
+    }
+    var oi = text.indexOf('✅');
+    if (oi >= 0) {
+      var otext = text.slice(oi + 2).trim().split(/[，。；]/)[0];
+      badge = {cls: 'ok', text: '✓ ' + (otext || '已核实')};
+      text = text.slice(0, oi).trim();
+    }
+    var meta = el('div', 'meta');
+    var span = el('span', null, text);
+    meta.appendChild(span);
+    if (badge) meta.appendChild(el('span', 'badge ' + badge.cls, badge.text));
+    cardEl.appendChild(meta);
+  }
+
+  function handleLinkP(p, cardEl) {
+    var a = p.querySelector('a');
+    if (!a) return false;
+    var row = el('div', 'linkrow');
+    var btn = el('a', 'btn', '阅读原文 →');
+    btn.href = a.href;
+    btn.target = '_blank'; btn.rel = 'noopener';
+    row.appendChild(btn);
+    try {
+      var host = new URL(a.href).hostname.replace(/^www\./, '');
+      row.appendChild(el('span', 'url', host));
+    } catch (e) {}
+    cardEl.appendChild(row);
+    var h3 = cardEl.querySelector('h3');
+    if (h3 && !h3.querySelector('a')) {
+      var link = el('a'); link.href = a.href; link.target = '_blank'; link.rel = 'noopener';
+      link.textContent = h3.textContent;
+      h3.textContent = ''; h3.appendChild(link);
+    }
+    return true;
+  }
+
+  var pendingDetailsLabel = false;
+  rest.forEach(function (node) {
+    var t = (node.textContent || '').trim();
+    if (node.tagName === 'H2') {
+      finishCard();
+      if (t === '本期摘要') {
+        current = null;
+        var nx = node.nextElementSibling;
+        // blockquote follows as separate node in rest array; handled below via flag
+        summaryPending = true;
+      } else {
+        summaryPending = false;
+        current = newSection(t);
+      }
+      return;
+    }
+    if (typeof summaryPending !== 'undefined' && summaryPending && node.tagName === 'BLOCKQUOTE') {
+      summaryPending = false;
+      node.querySelectorAll('p').forEach(function (p) { summaryPoints.push(p.textContent.trim()); });
+      return;
+    }
+    if (!current) { return; }
+    if (node.tagName === 'H3') {
+      finishCard();
+      card = makeCard(node);
+      pendingDetailsLabel = false;
+      return;
+    }
+    if (card) {
+      if (node.tagName === 'P' && t.indexOf('来源：') === 0 || node.tagName === 'P' && t.indexOf('来源:') === 0) {
+        handleMeta(node, card); return;
+      }
+      if (node.tagName === 'P' && node.querySelector('a') && t.indexOf('原文链接') === 0) {
+        if (handleLinkP(node, card)) return;
+      }
+      if (node.tagName === 'P' && t.indexOf('补充细节') === 0) {
+        node.classList.add('details-label');
+        card.appendChild(node); pendingDetailsLabel = true; return;
+      }
+      if ((node.tagName === 'UL' || node.tagName === 'OL') && pendingDetailsLabel) {
+        node.classList.add('details');
+        card.appendChild(node); pendingDetailsLabel = false; return;
+      }
+      if (node.tagName === 'P') {
+        var tw = card.querySelector('.takeaway');
+        if (!tw) { tw = el('div', 'takeaway'); card.appendChild(tw); }
+        tw.appendChild(node); return;
+      }
+      card.appendChild(node); return;
+    }
+    // no card yet in this section: loose content (empty-category notes, lists)
+    current.body.appendChild(node);
+  });
+
+  // sections with no cards: wrap loose paragraphs into a notice
+  navData.forEach(function (n, i) {
+    var sec = document.getElementById(n.id);
+    var body = sec.querySelector('.sec-body') || sec;
+    var hasCard = !!sec.querySelector('.card');
+    if (!hasCard && sec.dataset.kind !== 'excluded' && !sec.classList.contains('sources-sec')) {
+      var loose = Array.prototype.slice.call(body.children).filter(function (c) { return c.tagName === 'P'; });
+      if (loose.length) {
+        var notice = el('div', 'notice');
+        loose.forEach(function (p) { notice.appendChild(p); });
+        body.appendChild(notice);
+      }
+    }
+    var numEl = sec.querySelector('[data-role="secnum"]');
+    if (numEl) {
+      var c = sec.querySelectorAll('.card').length;
+      numEl.textContent = sec.dataset.kind === 'excluded' ? '!' : (sec.classList.contains('sources-sec') ? '≡' : String(c));
+    }
+  });
+
+  // stats
+  Object.keys(counts).forEach(function (k) {
+    var cell = document.querySelector('[data-stat="' + k + '"] .num');
+    if (cell) cell.textContent = counts[k];
+  });
+
+  // highlights / lede fallback from summary blockquote
+  var hl = document.getElementById('highlights-list');
+  if (hl && hl.children.length === 0 && summaryPoints.length) {
+    var pts = summaryPoints.slice();
+    var ledeEl = document.getElementById('lede');
+    if (ledeEl && !ledeEl.textContent.trim()) { ledeEl.textContent = pts.shift() || ''; }
+    pts.forEach(function (p) {
+      var li = el('li', null, p.replace(/^[①②③④⑤⑥⑦⑧⑨⑩]\s*/, ''));
+      hl.appendChild(li);
+    });
+  }
+  var hlBox = document.getElementById('highlights');
+  if (hlBox && hl && hl.children.length === 0) hlBox.style.display = 'none';
+
+  // sticky nav
+  var nav = document.getElementById('digest-nav');
+  if (nav) {
+    navData.forEach(function (n) {
+      var a = el('a'); a.href = '#' + n.id;
+      a.textContent = n.name;
+      var sec = document.getElementById(n.id);
+      var c = sec ? sec.querySelectorAll('.card').length : 0;
+      if (c) { var s = el('span', 'n', String(c)); a.appendChild(s); }
+      nav.appendChild(a);
+    });
+    var arch = document.getElementById('archive');
+    if (arch) { var aa = el('a', null, '往期'); aa.href = '#archive'; nav.appendChild(aa); }
+  }
+
+  // fineprint (verification time) at the end
+  fineprint.forEach(function (p) { p.classList.add('fineprint'); mount.appendChild(p); });
+
+  // in-page search filter
+  var input = document.getElementById('digest-search');
+  if (input) {
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase();
+      document.querySelectorAll('.card.searchable').forEach(function (c) {
+        c.style.display = (!q || c.textContent.toLowerCase().indexOf(q) >= 0) ? '' : 'none';
+      });
+      document.querySelectorAll('.sec').forEach(function (sec) {
+        if (sec.id === 'archive') return;
+        var cards = sec.querySelectorAll('.card.searchable');
+        if (!cards.length) return;
+        var any = Array.prototype.some.call(cards, function (c) { return c.style.display !== 'none'; });
+        sec.style.display = any ? '' : 'none';
+      });
+    });
+  }
+  raw.style.display = 'none';
+});
+</script>
+</body>
+</html>

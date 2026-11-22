@@ -1,0 +1,6 @@
+{{ define "main" }}
+{{ partial "digest.html" (dict "page" .) }}
+{{ $others := where .Site.RegularPages "Section" "posts" }}
+{{ $others = where $others "Permalink" "ne" .Permalink }}
+{{ partial "archive.html" $others }}
+{{ end }}

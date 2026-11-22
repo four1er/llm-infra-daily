@@ -1,0 +1,11 @@
+{{ define "main" }}
+{{ $posts := where .Site.RegularPages "Section" "posts" }}
+{{ $posts = sort $posts "Date" "desc" }}
+{{ if $posts }}
+  {{ $latest := index $posts 0 }}
+  {{ partial "digest.html" (dict "page" $latest) }}
+  {{ partial "archive.html" (after 1 $posts) }}
+{{ else }}
+  <p class="notice">暂无日报。</p>
+{{ end }}
+{{ end }}

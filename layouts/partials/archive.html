@@ -1,0 +1,15 @@
+{{ $pages := . }}
+{{ if $pages }}
+<section class="sec" id="archive">
+  <div class="sec-head"><span class="sec-num c-gray">≡</span><h2>往期日报</h2></div>
+  <div class="archive">
+    {{ range $pages }}
+    <a class="arch-card" href="{{ .RelPermalink }}">
+      <div class="arch-date">{{ .Date.Format "2006-01-02" }}</div>
+      <div class="arch-title">{{ .Params.headline | default .Title }}</div>
+      <div class="arch-more">查看本期 →</div>
+    </a>
+    {{ end }}
+  </div>
+</section>
+{{ end }}
