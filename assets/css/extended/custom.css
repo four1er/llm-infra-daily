@@ -1,12 +1,131 @@
-/* LLM Infra Daily — typography & layout polish on top of PaperMod */
+/* LLM Infra Daily — warm paper & white-card theme, matching the Muse digest component */
 
 :root {
-  --accent: #4f46e5;
-  --accent-soft: rgba(79, 70, 229, 0.08);
+  --theme: #faf6ee;
+  --entry: #fffdf8;
+  --primary: #2b2620;
+  --secondary: #7a7264;
+  --tertiary: #e9e1cf;
+  --content: #45403a;
+  --code-bg: #f4eddd;
+  --code-block-bg: #2b2620;
+  --border: #e7ddc9;
+  --accent: #b45309;
+  --accent-soft: rgba(217, 164, 32, 0.14);
+  --card-shadow: 0 1px 2px rgba(87, 70, 30, 0.05), 0 10px 30px rgba(87, 70, 30, 0.06);
+  --card-shadow-hover: 0 2px 4px rgba(87, 70, 30, 0.06), 0 16px 40px rgba(87, 70, 30, 0.10);
 }
 .dark {
-  --accent: #a5b4fc;
-  --accent-soft: rgba(165, 180, 252, 0.10);
+  --theme: #1d1a16;
+  --entry: #27231e;
+  --primary: #ece7db;
+  --secondary: #a89f8d;
+  --tertiary: #3d382f;
+  --content: #d8d2c4;
+  --code-bg: #322d26;
+  --code-block-bg: #171410;
+  --border: #403a30;
+  --accent: #f0b429;
+  --accent-soft: rgba(240, 180, 41, 0.14);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 30px rgba(0, 0, 0, 0.30);
+  --card-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(0, 0, 0, 0.38);
+}
+
+body {
+  background: var(--theme);
+}
+
+/* ---- header ---- */
+.header {
+  background: color-mix(in srgb, var(--theme) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.logo a {
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+#menu a {
+  font-size: 15px;
+  color: var(--secondary);
+}
+#menu a:hover,
+#menu .active {
+  color: var(--primary);
+}
+
+/* ---- home hero (homeInfoParams) as a warm tinted card ---- */
+.home-info {
+  background: linear-gradient(180deg, rgba(245, 197, 66, 0.16), rgba(245, 197, 66, 0.07));
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--card-shadow);
+  padding: 30px 34px;
+  margin-top: 26px;
+}
+.home-info .entry-header h1 {
+  font-size: 30px;
+  line-height: 1.3;
+}
+.home-info .entry-content {
+  color: var(--content);
+  line-height: 1.8;
+}
+
+/* ---- home list entries as white cards ---- */
+.post-entry {
+  background: var(--entry);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  padding: 24px 28px;
+  margin-bottom: 22px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.post-entry:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+.post-entry .entry-header h2 {
+  font-size: 21px;
+  line-height: 1.45;
+}
+.entry-content {
+  line-height: 1.75;
+  color: var(--secondary);
+}
+.entry-footer {
+  color: var(--secondary);
+  font-size: 13px;
+}
+
+/* ---- a post page becomes one big white card ---- */
+.post-single {
+  background: var(--entry);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--card-shadow);
+  padding: 38px 44px 30px;
+  margin-top: 26px;
+}
+@media (max-width: 700px) {
+  .post-single {
+    padding: 26px 20px 22px;
+    border-radius: 18px;
+  }
+  .home-info {
+    padding: 24px 22px;
+  }
+  .post-entry {
+    padding: 20px 20px;
+  }
+}
+.breadcrumbs {
+  color: var(--secondary);
+  font-size: 13.5px;
+}
+.breadcrumbs a {
+  color: var(--secondary);
 }
 
 /* ---- post typography ---- */
@@ -14,6 +133,7 @@
   font-size: 16.5px;
   line-height: 1.85;
   letter-spacing: 0.01em;
+  color: var(--content);
 }
 .post-content p {
   margin-bottom: 14px;
@@ -31,13 +151,14 @@
 /* ---- section headings (categories), each category its own color ---- */
 .post-content h2 {
   --cat: var(--accent);
-  font-size: 22px;
+  font-size: 21px;
   margin: 44px 0 16px;
   padding: 10px 16px;
-  background: color-mix(in srgb, var(--cat) 10%, transparent);
+  background: color-mix(in srgb, var(--cat) 9%, transparent);
   border-left: 4px solid var(--cat);
-  border-radius: 0 10px 10px 0;
+  border-radius: 10px;
   line-height: 1.45;
+  color: var(--primary);
 }
 /* order in a post: 1 摘要 / 2 技术报告 / 3 arXiv 论文 / 4 行业新闻 / 5 X 动态 / 6 热点 / 7+ 核验与来源 */
 .post-content h2:nth-of-type(1) { --cat: #64748b; }
@@ -46,20 +167,31 @@
 .post-content h2:nth-of-type(4) { --cat: #0f766e; }
 .post-content h2:nth-of-type(5) { --cat: #0284c7; }
 .post-content h2:nth-of-type(6) { --cat: #e11d48; }
-.post-content h2:nth-of-type(n+7) { --cat: #94a3b8; }
+.post-content h2:nth-of-type(n+7) { --cat: #a8a29e; }
 .dark .post-content h2:nth-of-type(1) { --cat: #94a3b8; }
 .dark .post-content h2:nth-of-type(2) { --cat: #60a5fa; }
 .dark .post-content h2:nth-of-type(3) { --cat: #a78bfa; }
 .dark .post-content h2:nth-of-type(4) { --cat: #2dd4bf; }
 .dark .post-content h2:nth-of-type(5) { --cat: #38bdf8; }
 .dark .post-content h2:nth-of-type(6) { --cat: #fb7185; }
-.dark .post-content h2:nth-of-type(n+7) { --cat: #64748b; }
+.dark .post-content h2:nth-of-type(n+7) { --cat: #78716c; }
 .post-content h2:first-of-type {
   margin-top: 30px;
 }
 
-/* summary is written as a blockquote callout (see blockquote rules below);
-   its points are separate paragraphs inside the quote */
+/* summary blockquote callout: soft amber tint like the component */
+.post-content blockquote {
+  border-inline-start: 3px solid #d9a420;
+  background: rgba(245, 197, 66, 0.10);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 18px 0;
+  color: var(--primary);
+}
+.dark .post-content blockquote {
+  background: rgba(240, 180, 41, 0.10);
+  border-inline-start-color: var(--accent);
+}
 .post-content blockquote p {
   margin-bottom: 10px;
 }
@@ -74,26 +206,28 @@
   margin: 34px 0 8px;
   padding-top: 20px;
   border-top: 1px solid var(--border);
+  color: var(--primary);
 }
 .post-content h3:first-of-type {
   border-top: none;
   padding-top: 4px;
 }
-/* the 来源：… ｜ 时间：… line right after an item title */
+/* the 来源：… ｜ 时间：… line right after an item title, as a warm chip */
 .post-content h3 + p {
   font-size: 13.8px;
   line-height: 1.7;
   color: var(--secondary);
   background: var(--code-bg);
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: 999px;
+  padding: 6px 14px;
   margin-bottom: 12px;
+  display: inline-block;
 }
 .post-content h3 + p strong {
   color: var(--primary);
 }
 
-/* standalone 原文链接 paragraph becomes a small button */
+/* standalone 原文链接 paragraph becomes a pill button */
 .post-content p:has(> a:only-child) > a {
   display: inline-block;
   font-size: 14px;
@@ -109,7 +243,10 @@
 }
 .post-content p:has(> a:only-child) > a:hover {
   background: var(--accent);
-  color: #fff;
+  color: #fff8e6;
+}
+.post-content a {
+  color: var(--accent);
 }
 
 /* ---- references / verification notes: small print ---- */
@@ -144,20 +281,9 @@
 .post-content li > p {
   margin-bottom: 6px;
 }
-/* nested detail lists get a soft panel feel */
 .post-content ul ul,
 .post-content ol ul {
   margin-top: 8px;
-}
-
-/* quotes as callouts */
-.post-content blockquote {
-  border-inline-start: 3px solid var(--accent);
-  background: var(--accent-soft);
-  border-radius: 0 10px 10px 0;
-  padding: 12px 18px;
-  margin: 18px 0;
-  color: var(--primary);
 }
 
 .post-content hr {
@@ -167,20 +293,46 @@
 }
 
 ::selection {
-  background: var(--accent-soft);
+  background: rgba(245, 197, 66, 0.35);
 }
 
 /* post header polish */
 .post-title {
   line-height: 1.35;
   letter-spacing: 0.01em;
+  color: var(--primary);
 }
 .post-meta {
   font-size: 13.5px;
+  color: var(--secondary);
 }
-/* table of contents box */
+
+/* table of contents as a soft card */
 .toc {
-  border-radius: 12px;
+  background: var(--theme);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.dark .toc {
+  background: var(--code-bg);
+}
+
+/* post footer: tags & prev/next as pills/cards */
+.post-tags a {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--secondary);
+}
+.post-tags a:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.paginav {
+  background: var(--entry);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--card-shadow);
 }
 
 /* tables (if any remain) */
@@ -193,10 +345,24 @@
   background: var(--code-bg);
 }
 
-/* home list entries */
-.post-entry {
+/* archive entries follow the same card language */
+.archive-entry {
+  background: var(--entry);
+  border: 1px solid var(--border);
   border-radius: 14px;
+  box-shadow: var(--card-shadow);
+  padding: 16px 20px;
+  margin-bottom: 14px;
 }
-.entry-content {
-  line-height: 1.7;
+
+/* footer */
+.footer {
+  color: var(--secondary);
+  font-size: 13px;
+}
+.top-link {
+  background: var(--entry);
+  border: 1px solid var(--border);
+  box-shadow: var(--card-shadow);
+  color: var(--secondary);
 }
