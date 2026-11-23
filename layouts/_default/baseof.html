@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ if .IsHome }}LLM Infrastructure 日报{{ else }}{{ .Title }} · LLM Infrastructure 日报{{ end }}</title>
-<meta name="description" content="每天早上 9:00 更新：最近 24 小时 LLM infrastructure 领域的技术报告、论文、行业新闻、X 动态与热点，中文汇总，每条附原文链接。">
+<meta name="description" content="每天早上 9:00 更新：最近 24 小时 LLM 基础设施、AI Agent 与量化投资三个主题的技术报告、论文、行业新闻、X 动态与热点，中文汇总，每条附原文链接。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
@@ -71,6 +71,25 @@ a{color:var(--amber-dark)}
 .stat.s-tech .num{color:var(--tech)} .stat.s-paper .num{color:var(--paper)}
 .stat.s-ind .num{color:var(--ind)} .stat.s-x .num{color:var(--x)} .stat.s-hot .num{color:var(--hot)}
 @media (max-width:640px){.stats{grid-template-columns:repeat(3,1fr)}}
+
+/* per-theme stats groups */
+.theme-stats{margin:22px 0 4px}
+.theme-stats-head{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;margin-bottom:9px}
+.theme-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.theme-dot.t-infra{background:var(--tech)} .theme-dot.t-agent{background:var(--paper)} .theme-dot.t-quant{background:var(--ind)}
+.theme-stats-head .theme-total{margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:600}
+.theme-stats .stats{margin:0 0 8px}
+.theme-stats .stat{padding:11px 10px 9px}
+.theme-stats .stat .num{font-size:26px}
+
+/* theme blocks */
+.theme-sec{margin-top:46px}
+.theme-head{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:10px}
+.theme-head .t-num{flex:none;font-size:13px;font-weight:700;letter-spacing:.18em;color:var(--amber-dark)}
+.theme-head h2{font-family:"Noto Serif SC",serif;font-weight:900;font-size:27px;margin:0;letter-spacing:.02em}
+.theme-head .t-total{margin-left:auto;flex:none;font-size:13px;color:var(--muted);font-weight:600}
+.theme-sec .sec{margin-top:28px}
+.theme-sec .sec:first-child{margin-top:22px}
 
 /* highlights: black box */
 .highlights{background:var(--hl-bg);color:var(--hl-ink);border-radius:18px;
@@ -165,6 +184,7 @@ small a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
 .mini-stat b{font-size:15px}
 .mini-stat.s-tech b{color:var(--tech)} .mini-stat.s-paper b{color:var(--paper)}
 .mini-stat.s-ind b{color:var(--ind)} .mini-stat.s-x b{color:var(--x)} .mini-stat.s-hot b{color:var(--hot)}
+.mini-stat.t-infra b{color:var(--tech)} .mini-stat.t-agent b{color:var(--paper)} .mini-stat.t-quant b{color:var(--ind)}
 .edition-title{font-family:"Noto Serif SC",serif;font-weight:900;font-size:22px;line-height:1.45;margin:12px 0 8px}
 .edition-lede{font-size:15px;line-height:1.8;color:var(--muted)}
 .edition-card .arch-more{margin-top:12px}
@@ -208,9 +228,15 @@ document.addEventListener('DOMContentLoaded', function () {
   var mount = document.getElementById('digest-sections');
   if (!mount) return;
   var CAT = {'技术报告':'tech','arXiv 论文':'paper','行业新闻':'ind','X 动态':'x','热点新闻':'hot'};
-  var counts = {tech:0, paper:0, ind:0, x:0, hot:0};
+  var THEMES = {'主题一 · LLM 基础设施':'infra','主题二 · AI Agent':'agent','主题三 · 量化投资':'quant'};
+  var counts = {
+    infra: {tech:0, paper:0, ind:0, x:0, hot:0},
+    agent: {tech:0, paper:0, ind:0, x:0, hot:0},
+    quant: {tech:0, paper:0, ind:0, x:0, hot:0}
+  };
   var navData = [];
   var fineprint = [];
+  var summaryPending = false;
 
   function el(tag, cls, text) {
     var e = document.createElement(tag);
@@ -233,39 +259,57 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   var summaryPoints = [];
+  var currentTheme = null; // {section, body, key, name}
   var current = null; // {section, body, catKey, name}
   var card = null;
 
-  function newSection(name) {
+  function newTheme(name) {
+    var key = THEMES[name] || 'infra';
+    var sec = el('section', 'theme-sec');
+    sec.id = 'theme-' + key;
+    var head = el('div', 'theme-head');
+    var parts = name.split(' · ');
+    head.appendChild(el('span', 't-num', parts[0] || '主题'));
+    head.appendChild(el('h2', null, parts[1] || name));
+    var total = el('span', 't-total', '');
+    total.dataset.total = key;
+    head.appendChild(total);
+    var body = el('div', 'theme-body');
+    sec.appendChild(head); sec.appendChild(body);
+    mount.appendChild(sec);
+    navData.push({id: sec.id, name: name, key: key, theme: true});
+    return {section: sec, body: body, key: key, name: name};
+  }
+
+  function newSection(name, parent) {
     var sec = el('section', 'sec');
     var key = CAT[name] || 'gray';
-    sec.id = 'sec-' + key;
+    sec.id = 'sec-' + (currentTheme ? currentTheme.key + '-' : '') + key;
     if (name.indexOf('来源清单') === 0) sec.classList.add('sources-sec');
     var head = el('div', 'sec-head');
     var num = el('span', 'sec-num c-' + key, '');
     num.dataset.role = 'secnum';
-    var h2 = el('h2', null, name);
-    head.appendChild(num); head.appendChild(h2);
+    head.appendChild(num); head.appendChild(el('h2', null, name));
     var body = el('div', 'sec-body');
+    var inner = body;
     if (name.indexOf('未能核实') === 0) {
-      var box = el('div', 'excluded'); body.appendChild(box); body = box;
+      inner = el('div', 'excluded');
+      body.appendChild(inner);
       sec.dataset.kind = 'excluded';
     }
-    sec.appendChild(head); sec.appendChild(body.parentNode === sec ? body : body);
-    if (sec.dataset.kind === 'excluded') { /* body already nested */ }
-    mount.appendChild(sec);
-    navData.push({id: sec.id, name: name, key: key});
-    return {section: sec, body: body, catKey: key, name: name, cards: 0, numEl: num};
+    sec.appendChild(head); sec.appendChild(body);
+    parent.appendChild(sec);
+    return {section: sec, body: inner, catKey: key, name: name};
   }
 
   function finishCard() { card = null; }
 
-  function makeCard(h3) {
+  function makeCard(h) {
     var c = el('article', 'card searchable');
-    c.appendChild(h3);
+    c.appendChild(h);
     current.body.appendChild(c);
-    current.cards++;
-    if (counts.hasOwnProperty(current.catKey)) counts[current.catKey]++;
+    var tk = currentTheme ? currentTheme.key : 'infra';
+    if (counts[tk] && counts[tk].hasOwnProperty(current.catKey)) counts[tk][current.catKey]++;
     return c;
   }
 
@@ -305,11 +349,11 @@ document.addEventListener('DOMContentLoaded', function () {
       row.appendChild(el('span', 'url', host));
     } catch (e) {}
     cardEl.appendChild(row);
-    var h3 = cardEl.querySelector('h3');
-    if (h3 && !h3.querySelector('a')) {
+    var h = cardEl.querySelector('h4') || cardEl.querySelector('h3');
+    if (h && !h.querySelector('a')) {
       var link = el('a'); link.href = a.href; link.target = '_blank'; link.rel = 'noopener';
-      link.textContent = h3.textContent;
-      h3.textContent = ''; h3.appendChild(link);
+      link.textContent = h.textContent;
+      h.textContent = ''; h.appendChild(link);
     }
     return true;
   }
@@ -321,27 +365,36 @@ document.addEventListener('DOMContentLoaded', function () {
       finishCard();
       if (t === '本期摘要') {
         current = null;
-        var nx = node.nextElementSibling;
-        // blockquote follows as separate node in rest array; handled below via flag
         summaryPending = true;
+      } else if (THEMES.hasOwnProperty(t)) {
+        summaryPending = false;
+        currentTheme = newTheme(t);
+        current = null;
       } else {
         summaryPending = false;
-        current = newSection(t);
+        current = newSection(t, mount);
+        navData.push({id: current.section.id, name: t, key: current.catKey});
       }
       return;
     }
-    if (typeof summaryPending !== 'undefined' && summaryPending && node.tagName === 'BLOCKQUOTE') {
+    if (summaryPending && node.tagName === 'BLOCKQUOTE') {
       summaryPending = false;
       node.querySelectorAll('p').forEach(function (p) { summaryPoints.push(p.textContent.trim()); });
       return;
     }
-    if (!current) { return; }
     if (node.tagName === 'H3') {
       finishCard();
-      card = makeCard(node);
+      current = newSection(t, currentTheme ? currentTheme.body : mount);
       pendingDetailsLabel = false;
       return;
     }
+    if (node.tagName === 'H4') {
+      finishCard();
+      if (current) card = makeCard(node);
+      pendingDetailsLabel = false;
+      return;
+    }
+    if (!current) { return; }
     if (card) {
       if (node.tagName === 'P' && t.indexOf('来源：') === 0 || node.tagName === 'P' && t.indexOf('来源:') === 0) {
         handleMeta(node, card); return;
@@ -368,9 +421,8 @@ document.addEventListener('DOMContentLoaded', function () {
     current.body.appendChild(node);
   });
 
-  // sections with no cards: wrap loose paragraphs into a notice
-  navData.forEach(function (n, i) {
-    var sec = document.getElementById(n.id);
+  // sections with no cards: wrap loose paragraphs into a notice; number the dots
+  Array.prototype.slice.call(mount.querySelectorAll('.sec')).forEach(function (sec) {
     var body = sec.querySelector('.sec-body') || sec;
     var hasCard = !!sec.querySelector('.card');
     if (!hasCard && sec.dataset.kind !== 'excluded' && !sec.classList.contains('sources-sec')) {
@@ -388,10 +440,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // stats
-  Object.keys(counts).forEach(function (k) {
-    var cell = document.querySelector('[data-stat="' + k + '"] .num');
-    if (cell) cell.textContent = counts[k];
+  // per-theme stats + theme totals
+  Object.keys(counts).forEach(function (theme) {
+    var sum = 0;
+    Object.keys(counts[theme]).forEach(function (k) {
+      sum += counts[theme][k];
+      var cell = document.querySelector('[data-stat="' + theme + '-' + k + '"] .num');
+      if (cell) cell.textContent = counts[theme][k];
+    });
+    var label = sum ? ('共 ' + sum + ' 条') : '本期暂无';
+    document.querySelectorAll('[data-total="' + theme + '"]').forEach(function (e) {
+      e.textContent = label;
+    });
   });
 
   // highlights / lede fallback from summary blockquote
@@ -408,7 +468,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var hlBox = document.getElementById('highlights');
   if (hlBox && hl && hl.children.length === 0) hlBox.style.display = 'none';
 
-  // sticky nav
+  // sticky nav: themes + trailing sections
   var nav = document.getElementById('digest-nav');
   if (nav) {
     navData.forEach(function (n) {
@@ -437,9 +497,13 @@ document.addEventListener('DOMContentLoaded', function () {
       document.querySelectorAll('.sec').forEach(function (sec) {
         if (sec.id === 'archive') return;
         var cards = sec.querySelectorAll('.card.searchable');
-        if (!cards.length) return;
+        if (!cards.length) { sec.style.display = q ? 'none' : ''; return; }
         var any = Array.prototype.some.call(cards, function (c) { return c.style.display !== 'none'; });
         sec.style.display = any ? '' : 'none';
+      });
+      document.querySelectorAll('.theme-sec').forEach(function (ts) {
+        var any = Array.prototype.some.call(ts.querySelectorAll('.sec'), function (s) { return s.style.display !== 'none'; });
+        ts.style.display = any ? '' : 'none';
       });
     });
   }

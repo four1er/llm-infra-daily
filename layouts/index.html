@@ -13,9 +13,9 @@
   </div>
 
   <header class="hero">
-    <div class="kicker">LLM Infrastructure · 每日汇总</div>
+    <div class="kicker">LLM 基础设施 · AI Agent · 量化投资</div>
     <h1>LLM 基础设施日报</h1>
-    <p class="lede">每天早上 9:00 汇总最近 24 小时 LLM 基础设施领域的最新内容：技术报告、arXiv 论文、行业新闻、X 动态与热点。主题聚焦训练与推理系统、KV cache、serving 框架（vLLM、SGLang、TensorRT-LLM）、GPU 硬件与集群、量化与长上下文。每条给出标题、来源、发布时间、一句话要点和原文链接；无法核实的信息明确标注，不编造。</p>
+    <p class="lede">每天早上 9:00 汇总最近 24 小时三个主题的最新内容：主题一 LLM 基础设施（训练与推理系统、KV cache、serving 框架、GPU 硬件与集群、量化与长上下文）、主题二 AI Agent（agent 框架、评测基准、agent infra）、主题三 量化投资（量化策略、回测工具、市场微观结构）。每主题分技术报告、arXiv 论文、行业新闻、X 动态与热点五类；每条给出标题、来源、发布时间、一句话要点和原文链接；无法核实的信息明确标注，不编造。</p>
     <div class="meta-row">
       <span class="pill dark">已发布 {{ len $posts }} 期</span>
       <span class="pill">最新一期：{{ $latest.Date.Format "2006年1月2日" }} · {{ $wd }}</span>
@@ -30,12 +30,23 @@
     <a class="edition-card" href="{{ .RelPermalink }}">
       <div class="edition-top">
         <span class="pill dark">{{ .Date.Format "2006-01-02" }}</span>
-        {{ with .Params.counts }}
-        <span class="mini-stats">
-          {{ range $i, $c := . }}
-          <span class="mini-stat s-{{ index $keys $i }}"><b>{{ $c }}</b> {{ index $labels $i }}</span>
+        {{ $counts := .Params.counts }}
+        {{ if $counts }}
+          {{ if reflect.IsMap $counts }}
+          <span class="mini-stats">
+            {{ range $t := slice "infra" "agent" "quant" }}
+              {{ $arr := index $counts $t }}
+              {{ $total := 0 }}{{ range $arr }}{{ $total = add $total . }}{{ end }}
+              <span class="mini-stat t-{{ $t }}"><b>{{ $total }}</b> {{ index (dict "infra" "LLM 基础设施" "agent" "AI Agent" "quant" "量化投资") $t }}</span>
+            {{ end }}
+          </span>
+          {{ else }}
+          <span class="mini-stats">
+            {{ range $i, $c := $counts }}
+            <span class="mini-stat s-{{ index $keys $i }}"><b>{{ $c }}</b> {{ index $labels $i }}</span>
+            {{ end }}
+          </span>
           {{ end }}
-        </span>
         {{ end }}
       </div>
       <div class="edition-title">{{ .Params.headline | default .Title }}</div>
