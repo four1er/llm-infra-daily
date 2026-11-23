@@ -1,6 +1,97 @@
 {{ define "main" }}
-{{ partial "digest.html" (dict "page" .) }}
-{{ $others := where .Site.RegularPages "Section" "posts" }}
-{{ $others = where $others "Permalink" "ne" .Permalink }}
-{{ partial "archive.html" $others }}
+{{ $p := . }}
+{{ $wd := index (slice "星期日" "星期一" "星期二" "星期三" "星期四" "星期五" "星期六") (int $p.Date.Weekday) }}
+{{ $date := $p.Date.Format "2006-01-02" }}
+{{ $themes := dict
+  "infra" (dict "num" "主题一" "name" "LLM 基础设施")
+  "agent" (dict "num" "主题二" "name" "AI Agent")
+  "quant" (dict "num" "主题三" "name" "量化投资")
+}}
+{{ $counts := $p.Params.counts }}
+{{ $isMap := false }}{{ if $counts }}{{ if reflect.IsMap $counts }}{{ $isMap = true }}{{ end }}{{ end }}
+
+<div class="pipeline">
+  <span class="dot"></span>
+  <span>管线运行中 · 每日 09:00（Asia/Shanghai）自动汇总并同步聊天 / Muse 组件 / GitHub 站 · 下一期 {{ $p.Date.AddDate 0 0 1 | dateFormat "2006-01-02" }} 09:00</span>
+</div>
+
+<header class="hero">
+  <div class="kicker">日报 · {{ $p.Date.Format "2006年1月2日" }}</div>
+  <h1>{{ $p.Params.headline | default $p.Title }}</h1>
+  {{ with $p.Params.lede }}<p class="lede">{{ . }}</p>{{ end }}
+  <div class="meta-row">
+    <span class="pill dark">{{ $p.Date.Format "2006年1月2日" }} · {{ $wd }}</span>
+    <span class="pill" id="window-text">窗口：运行前 24 小时</span>
+    <span class="pill green">✓ 已核验来源 · 每条附原文链接</span>
+  </div>
+</header>
+
+<div class="theme-cards">
+  {{ range $k := slice "infra" "agent" "quant" }}
+  {{ $tv := index $themes $k }}
+  {{ $total := 0 }}
+  {{ if $isMap }}
+    {{ $arr := index $counts $k }}
+    {{ range $arr }}{{ $total = add $total . }}{{ end }}
+  {{ else if $counts }}
+    {{ range $counts }}{{ $total = add $total . }}{{ end }}
+  {{ end }}
+  <a class="theme-card t-{{ $k }}" href="{{ (printf "%s/" $k) | relURL }}#{{ $date }}">
+    <div class="tc-name">{{ $tv.num }} · {{ $tv.name }}</div>
+    <div class="tc-num"><b>{{ $total }}</b> 条</div>
+    <div class="tc-more">查看本主题 →</div>
+  </a>
+  {{ end }}
+</div>
+
+<main id="hub-trailing"></main>
+
+<div class="raw-content-hub">{{ $p.Content }}</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var raw = document.querySelector('.raw-content-hub');
+  var mount = document.getElementById('hub-trailing');
+  if (!raw || !mount) return;
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  var kids = Array.prototype.slice.call(raw.children);
+  var want = null; // 'excluded' | 'sources'
+  var sec = null, inner = null;
+  kids.forEach(function (k) {
+    var t = (k.textContent || '').trim();
+    if (k.tagName === 'P' && t.indexOf('窗口（严格执行）') === 0) {
+      var w = document.getElementById('window-text');
+      if (w) w.textContent = t.replace(/^窗口（严格执行）：/, '窗口：');
+      return;
+    }
+    if (k.tagName === 'H2') {
+      want = null; sec = null; inner = null;
+      if (t.indexOf('未能核实') === 0 || t.indexOf('来源清单') === 0) {
+        var isExcluded = t.indexOf('未能核实') === 0;
+        want = isExcluded ? 'excluded' : 'sources';
+        sec = el('section', 'sec' + (isExcluded ? '' : ' sources-sec'));
+        if (isExcluded) sec.dataset.kind = 'excluded';
+        var head = el('div', 'sec-head');
+        head.appendChild(el('span', 'sec-num c-gray', isExcluded ? '!' : '≡'));
+        head.appendChild(el('h2', null, t));
+        var body = el('div', 'sec-body');
+        inner = body;
+        if (isExcluded) {
+          inner = el('div', 'excluded');
+          body.appendChild(inner);
+        }
+        sec.appendChild(head); sec.appendChild(body);
+        mount.appendChild(sec);
+      }
+      return;
+    }
+    if (want && sec) { inner.appendChild(k); }
+  });
+});
+</script>
 {{ end }}

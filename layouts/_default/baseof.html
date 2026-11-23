@@ -35,9 +35,10 @@ a{color:var(--amber-dark)}
 .wrap{max-width:860px;margin:0 auto;padding:0 18px 60px}
 
 /* topbar */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 2px 6px}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:20px 2px 6px}
 .brand{font-family:"Noto Serif SC",serif;font-weight:900;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:.02em}
 .brand .dot{color:var(--amber)}
+.topbar nav{display:flex;flex-wrap:wrap}
 .topbar nav a{color:var(--muted);text-decoration:none;font-size:14px;margin-left:18px}
 .topbar nav a:hover{color:var(--ink)}
 
@@ -189,6 +190,40 @@ small a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
 .edition-lede{font-size:15px;line-height:1.8;color:var(--muted)}
 .edition-card .arch-more{margin-top:12px}
 
+/* theme tabs */
+.theme-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 6px}
+.theme-tabs a{font-size:14px;font-weight:700;color:var(--ink);text-decoration:none;
+  background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 18px}
+.theme-tabs a:hover{border-color:var(--amber);color:var(--amber-dark)}
+.theme-tabs a.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* theme cards (home + hub) */
+.theme-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0 8px}
+@media (max-width:640px){.theme-cards{grid-template-columns:1fr}}
+.theme-card{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow);padding:22px 24px;text-decoration:none;color:var(--ink);
+  transition:transform .18s,box-shadow .18s}
+.theme-card:hover{transform:translateY(-2px)}
+.theme-card .tc-name{font-family:"Noto Serif SC",serif;font-weight:900;font-size:20px;line-height:1.4}
+.theme-card .tc-num{font-size:14px;color:var(--muted);margin-top:10px}
+.theme-card .tc-num b{font-family:"Noto Serif SC",serif;font-weight:900;font-size:28px;color:var(--ink);margin-right:2px}
+.theme-card.t-infra .tc-num b{color:var(--tech)}
+.theme-card.t-agent .tc-num b{color:var(--paper)}
+.theme-card.t-quant .tc-num b{color:var(--ind)}
+.theme-card .tc-breakdown{display:flex;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px}
+.theme-card .tc-breakdown b{color:var(--ink)}
+.theme-card .tc-headline{font-family:"Noto Serif SC",serif;font-weight:700;font-size:16px;line-height:1.55;margin-top:10px}
+.theme-card .tc-more{font-size:13.5px;font-weight:700;color:var(--amber-dark);margin-top:12px}
+
+/* theme subpage editions */
+.edition{margin-top:44px}
+.edition-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:10px}
+.edition-head .edition-title{font-family:"Noto Serif SC",serif;font-weight:900;font-size:24px;margin:0;line-height:1.4}
+.edition-head .t-total{margin-left:auto;flex:none;font-size:13px;color:var(--muted);font-weight:600}
+.edition .stats{margin:18px 0 4px}
+.edition .stat{padding:11px 10px 9px}
+.edition .stat .num{font-size:26px}
+
 /* list pages (archives / tags) */
 .list-card{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;
   box-shadow:var(--shadow);padding:20px 26px;margin-bottom:14px;text-decoration:none;color:var(--ink)}
@@ -200,15 +235,18 @@ small a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
 footer{margin-top:52px;padding-top:20px;border-top:1px dashed var(--line);
   color:var(--muted);font-size:13px;line-height:1.8;text-align:center}
 footer a{color:var(--muted)}
-.raw-content{display:none}
+.raw-content,.raw-content-theme,.raw-content-hub{display:none}
 </style>
-<noscript><style>.raw-content{display:block}.digest-nav,.search,.stats{display:none}</style></noscript>
+<noscript><style>.raw-content,.raw-content-theme,.raw-content-hub{display:block}.digest-nav,.search,.stats{display:none}</style></noscript>
 </head>
 <body>
 <div class="wrap">
   <header class="topbar">
     <a class="brand" href="{{ .Site.BaseURL }}">LLM Infrastructure 日报<span class="dot">.</span></a>
     <nav>
+      <a href="{{ "infra/" | relURL }}">LLM 基础设施</a>
+      <a href="{{ "agent/" | relURL }}">AI Agent</a>
+      <a href="{{ "quant/" | relURL }}">量化投资</a>
       <a href="{{ "posts/" | relURL }}">归档</a>
       <a href="{{ "tags/" | relURL }}">标签</a>
       <a href="https://github.com/four1er/llm-infra-daily" target="_blank" rel="noopener">GitHub</a>
@@ -250,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var rest = [];
   kids.forEach(function (k) {
     var t = (k.textContent || '').trim();
-    if (k.tagName === 'P' && t.indexOf('窗口') === 0) {
+    if (k.tagName === 'P' && t.indexOf('窗口（严格执行）') === 0) {
       var w = document.getElementById('window-text');
       if (w) w.textContent = t.replace(/^窗口（严格执行）：/, '窗口：');
     } else if (k.tagName === 'P' && t.indexOf('检索与核验时间') === 0) {

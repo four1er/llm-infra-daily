@@ -1,0 +1,255 @@
+{{ define "main" }}
+{{ $theme := .Params.theme }}
+{{ $themes := dict
+  "infra" (dict "num" "主题一" "name" "LLM 基础设施" "desc" "训练与推理系统、分布式训练、并行策略、显存优化、KV cache、推理加速与 serving 框架、compiler 与算子、GPU 硬件与集群、调度、量化压缩、长上下文与 MoE 工程。")
+  "agent" (dict "num" "主题二" "name" "AI Agent" "desc" "agent 框架与 coding agent、评测基准、多智能体与工具调用研究、agent infra（沙箱执行、MCP、A2A/ACP 协议）、agent 部署与观测、厂商 agent 产品动态。")
+  "quant" (dict "num" "主题三" "name" "量化投资" "desc" "量化策略与回测、因子与机器学习选股、回测与执行工具、市场微观结构与交易成本、风险管理、q-fin 论文。")
+}}
+{{ $t := index $themes $theme }}
+{{ $posts := where .Site.RegularPages "Section" "posts" }}
+{{ $posts = sort $posts "Date" "desc" }}
+
+<div class="pipeline">
+  <span class="dot"></span>
+  <span>管线运行中 · 每日 09:00（Asia/Shanghai）自动汇总并同步聊天 / Muse 组件 / GitHub 站</span>
+</div>
+
+<header class="hero">
+  <div class="kicker">{{ $t.num }} · {{ $t.name }}</div>
+  <h1>{{ $t.name }}</h1>
+  <p class="lede">{{ $t.desc }}</p>
+  <div class="meta-row">
+    <span class="pill dark">已发布 {{ len $posts }} 期</span>
+    {{ if $posts }}<span class="pill">最新一期：{{ (index $posts 0).Date.Format "2006年1月2日" }}</span>{{ end }}
+    <span class="pill green">✓ 每条附原文链接</span>
+  </div>
+</header>
+
+<nav class="theme-tabs" aria-label="主题导航">
+  {{ range $k := slice "infra" "agent" "quant" }}
+  {{ $tv := index $themes $k }}
+  <a href="{{ (printf "%s/" $k) | relURL }}" class="{{ if eq $k $theme }}active{{ end }}">{{ $tv.num }} · {{ $tv.name }}</a>
+  {{ end }}
+</nav>
+
+<div class="search"><input id="theme-search" type="search" placeholder="搜索本主题内容…" autocomplete="off"></div>
+
+{{ range $posts }}
+{{ $date := .Date.Format "2006-01-02" }}
+<section class="edition" id="{{ $date }}">
+  <div class="edition-head">
+    <span class="pill dark">{{ $date }}</span>
+    <h2 class="edition-title">{{ .Params.headline | default .Title }}</h2>
+    <span class="t-total" data-total="{{ $date }}"></span>
+  </div>
+  <div class="stats edition-stats">
+    <div class="stat s-tech" data-stat="{{ $date }}-tech"><div class="num">–</div><div class="lbl">技术报告</div></div>
+    <div class="stat s-paper" data-stat="{{ $date }}-paper"><div class="num">–</div><div class="lbl">arXiv 论文</div></div>
+    <div class="stat s-ind" data-stat="{{ $date }}-ind"><div class="num">–</div><div class="lbl">行业新闻</div></div>
+    <div class="stat s-x" data-stat="{{ $date }}-x"><div class="num">–</div><div class="lbl">X 动态</div></div>
+    <div class="stat s-hot" data-stat="{{ $date }}-hot"><div class="num">–</div><div class="lbl">热点新闻</div></div>
+  </div>
+  <div class="edition-body" data-edition="{{ $date }}"></div>
+  <div class="raw-content-theme" data-date="{{ $date }}">{{ .Content }}</div>
+</section>
+{{ end }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var THEME_NAME = '{{ $t.num }} · {{ $t.name }}';
+  var CAT = {'技术报告':'tech','arXiv 论文':'paper','行业新闻':'ind','X 动态':'x','热点新闻':'hot'};
+  var CAT_ORDER = ['技术报告','arXiv 论文','行业新闻','X 动态','热点新闻'];
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function handleMeta(p, cardEl) {
+    var text = (p.textContent || '').replace(/\s+/g, ' ').trim();
+    var badge = null;
+    var bi = text.indexOf('⚠️');
+    if (bi >= 0) {
+      var btext = text.slice(bi + 2).trim().split(/[，。；]/)[0];
+      badge = {cls: 'warn', text: '⚠ ' + btext};
+      text = text.slice(0, bi).trim();
+    }
+    var oi = text.indexOf('✅');
+    if (oi >= 0) {
+      var otext = text.slice(oi + 2).trim().split(/[，。；]/)[0];
+      badge = {cls: 'ok', text: '✓ ' + (otext || '已核实')};
+      text = text.slice(0, oi).trim();
+    }
+    var meta = el('div', 'meta');
+    meta.appendChild(el('span', null, text));
+    if (badge) meta.appendChild(el('span', 'badge ' + badge.cls, badge.text));
+    cardEl.appendChild(meta);
+  }
+
+  function handleLinkP(p, cardEl) {
+    var a = p.querySelector('a');
+    if (!a) return false;
+    var row = el('div', 'linkrow');
+    var btn = el('a', 'btn', '阅读原文 →');
+    btn.href = a.href; btn.target = '_blank'; btn.rel = 'noopener';
+    row.appendChild(btn);
+    try {
+      var host = new URL(a.href).hostname.replace(/^www\./, '');
+      row.appendChild(el('span', 'url', host));
+    } catch (e) {}
+    cardEl.appendChild(row);
+    var h = cardEl.querySelector('h4') || cardEl.querySelector('h3');
+    if (h && !h.querySelector('a')) {
+      var link = el('a'); link.href = a.href; link.target = '_blank'; link.rel = 'noopener';
+      link.textContent = h.textContent;
+      h.textContent = ''; h.appendChild(link);
+    }
+    return true;
+  }
+
+  document.querySelectorAll('.raw-content-theme').forEach(function (raw) {
+    var date = raw.dataset.date;
+    var body = document.querySelector('[data-edition="' + date + '"]');
+    if (!body) return;
+    var counts = {tech:0, paper:0, ind:0, x:0, hot:0};
+    var kids = Array.prototype.slice.call(raw.children);
+    var inTheme = false, nodes = [];
+    kids.forEach(function (k) {
+      if (k.tagName === 'H2') { inTheme = (k.textContent.trim() === THEME_NAME); }
+      else if (inTheme) { nodes.push(k); }
+    });
+
+    if (nodes.length === 0) {
+      // 本期该主题无内容：只显示空状态，不省略该期
+      var en = el('div', 'notice');
+      en.appendChild(el('p', null, '本期该主题暂无内容。'));
+      body.appendChild(en);
+      Object.keys(counts).forEach(function (k) {
+        var cell = document.querySelector('[data-stat="' + date + '-' + k + '"] .num');
+        if (cell) cell.textContent = '0';
+      });
+      var tot = document.querySelector('[data-total="' + date + '"]');
+      if (tot) tot.textContent = '本期暂无';
+      return;
+    }
+
+    var sections = {};
+    var current = null, card = null, pendingDetailsLabel = false;
+
+    function newSection(name) {
+      var sec = el('section', 'sec');
+      var key = CAT[name] || 'gray';
+      var head = el('div', 'sec-head');
+      var num = el('span', 'sec-num c-' + key, '');
+      num.dataset.role = 'secnum';
+      head.appendChild(num); head.appendChild(el('h2', null, name));
+      var b = el('div', 'sec-body');
+      sec.appendChild(head); sec.appendChild(b);
+      sections[name] = {section: sec, body: b, catKey: key, name: name};
+      return sections[name];
+    }
+
+    function makeCard(h) {
+      var c = el('article', 'card searchable');
+      c.appendChild(h);
+      current.body.appendChild(c);
+      counts[current.catKey]++;
+      return c;
+    }
+
+    nodes.forEach(function (node) {
+      var t = (node.textContent || '').trim();
+      if (node.tagName === 'H3') {
+        card = null;
+        current = newSection(t);
+        pendingDetailsLabel = false;
+        return;
+      }
+      if (node.tagName === 'H4') {
+        card = null;
+        if (current) card = makeCard(node);
+        pendingDetailsLabel = false;
+        return;
+      }
+      if (!current) return;
+      if (card) {
+        if (node.tagName === 'P' && (t.indexOf('来源：') === 0 || t.indexOf('来源:') === 0)) {
+          handleMeta(node, card); return;
+        }
+        if (node.tagName === 'P' && node.querySelector('a') && t.indexOf('原文链接') === 0) {
+          if (handleLinkP(node, card)) return;
+        }
+        if (node.tagName === 'P' && t.indexOf('补充细节') === 0) {
+          node.classList.add('details-label');
+          card.appendChild(node); pendingDetailsLabel = true; return;
+        }
+        if ((node.tagName === 'UL' || node.tagName === 'OL') && pendingDetailsLabel) {
+          node.classList.add('details');
+          card.appendChild(node); pendingDetailsLabel = false; return;
+        }
+        if (node.tagName === 'P') {
+          var tw = card.querySelector('.takeaway');
+          if (!tw) { tw = el('div', 'takeaway'); card.appendChild(tw); }
+          tw.appendChild(node); return;
+        }
+        card.appendChild(node); return;
+      }
+      current.body.appendChild(node);
+    });
+
+    var total = 0;
+    CAT_ORDER.forEach(function (name) {
+      var s = sections[name];
+      if (!s) {
+        s = newSection(name);
+        var notice = el('div', 'notice');
+        notice.appendChild(el('p', null, '本栏目暂无内容。'));
+        s.body.appendChild(notice);
+      }
+      body.appendChild(s.section);
+      var hasCard = !!s.section.querySelector('.card');
+      if (!hasCard) {
+        var loose = Array.prototype.slice.call(s.body.children).filter(function (c) { return c.tagName === 'P'; });
+        if (loose.length) {
+          var n2 = el('div', 'notice');
+          loose.forEach(function (p) { n2.appendChild(p); });
+          s.body.appendChild(n2);
+        }
+      }
+      var numEl = s.section.querySelector('[data-role="secnum"]');
+      if (numEl) numEl.textContent = String(s.section.querySelectorAll('.card').length);
+      total += counts[s.catKey];
+    });
+    Object.keys(counts).forEach(function (k) {
+      var cell = document.querySelector('[data-stat="' + date + '-' + k + '"] .num');
+      if (cell) cell.textContent = counts[k];
+    });
+    var totEl = document.querySelector('[data-total="' + date + '"]');
+    if (totEl) totEl.textContent = total ? ('共 ' + total + ' 条') : '本期暂无';
+  });
+
+  // 本主题内搜索：只搜本页内容
+  var input = document.getElementById('theme-search');
+  if (input) {
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase();
+      document.querySelectorAll('.card.searchable').forEach(function (c) {
+        c.style.display = (!q || c.textContent.toLowerCase().indexOf(q) >= 0) ? '' : 'none';
+      });
+      document.querySelectorAll('.edition .sec').forEach(function (sec) {
+        var cards = sec.querySelectorAll('.card.searchable');
+        if (!cards.length) { sec.style.display = q ? 'none' : ''; return; }
+        var any = Array.prototype.some.call(cards, function (c) { return c.style.display !== 'none'; });
+        sec.style.display = any ? '' : 'none';
+      });
+      document.querySelectorAll('.edition').forEach(function (ed) {
+        var any = Array.prototype.some.call(ed.querySelectorAll('.sec'), function (s) { return s.style.display !== 'none'; });
+        ed.style.display = any ? '' : 'none';
+      });
+    });
+  }
+});
+</script>
+{{ end }}

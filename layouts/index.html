@@ -3,6 +3,11 @@
 {{ $posts = sort $posts "Date" "desc" }}
 {{ $labels := slice "技术报告" "arXiv 论文" "行业新闻" "X 动态" "热点新闻" }}
 {{ $keys := slice "tech" "paper" "ind" "x" "hot" }}
+{{ $themes := dict
+  "infra" (dict "num" "主题一" "name" "LLM 基础设施")
+  "agent" (dict "num" "主题二" "name" "AI Agent")
+  "quant" (dict "num" "主题三" "name" "量化投资")
+}}
 
 {{ if $posts }}
   {{ $latest := index $posts 0 }}
@@ -23,38 +28,62 @@
     </div>
   </header>
 
-  <div class="search"><input id="home-search" type="search" placeholder="搜索往期日报（标题 / 日期）…" autocomplete="off"></div>
-
-  <div class="edition-list" id="edition-list">
-    {{ range $posts }}
-    <a class="edition-card" href="{{ .RelPermalink }}">
-      <div class="edition-top">
-        <span class="pill dark">{{ .Date.Format "2006-01-02" }}</span>
-        {{ $counts := .Params.counts }}
-        {{ if $counts }}
-          {{ if reflect.IsMap $counts }}
-          <span class="mini-stats">
-            {{ range $t := slice "infra" "agent" "quant" }}
-              {{ $arr := index $counts $t }}
-              {{ $total := 0 }}{{ range $arr }}{{ $total = add $total . }}{{ end }}
-              <span class="mini-stat t-{{ $t }}"><b>{{ $total }}</b> {{ index (dict "infra" "LLM 基础设施" "agent" "AI Agent" "quant" "量化投资") $t }}</span>
-            {{ end }}
-          </span>
-          {{ else }}
-          <span class="mini-stats">
-            {{ range $i, $c := $counts }}
-            <span class="mini-stat s-{{ index $keys $i }}"><b>{{ $c }}</b> {{ index $labels $i }}</span>
-            {{ end }}
-          </span>
-          {{ end }}
-        {{ end }}
+  {{ $latestCounts := $latest.Params.counts }}
+  {{ $latestIsMap := false }}{{ if $latestCounts }}{{ if reflect.IsMap $latestCounts }}{{ $latestIsMap = true }}{{ end }}{{ end }}
+  <div class="theme-cards">
+    {{ range $k := slice "infra" "agent" "quant" }}
+    {{ $tv := index $themes $k }}
+    {{ $total := 0 }}{{ $arr := slice }}
+    {{ if $latestIsMap }}{{ $arr = index $latestCounts $k }}{{ range $arr }}{{ $total = add $total . }}{{ end }}{{ end }}
+    <a class="theme-card t-{{ $k }}" href="{{ (printf "%s/" $k) | relURL }}">
+      <div class="tc-name">{{ $tv.num }} · {{ $tv.name }}</div>
+      <div class="tc-num"><b>{{ $total }}</b> 条 · 最新一期 {{ $latest.Date.Format "2006-01-02" }}</div>
+      {{ if $arr }}
+      <div class="tc-breakdown">
+        {{ range $i, $c := $arr }}<span>{{ index $labels $i }} <b>{{ $c }}</b></span>{{ end }}
       </div>
-      <div class="edition-title">{{ .Params.headline | default .Title }}</div>
-      {{ with .Params.lede }}<div class="edition-lede">{{ . }}</div>{{ end }}
-      <div class="arch-more">查看本期 →</div>
+      {{ end }}
+      <div class="tc-headline">{{ $latest.Params.headline | default $latest.Title }}</div>
+      <div class="tc-more">进入{{ $tv.name }} →</div>
     </a>
     {{ end }}
   </div>
+
+  <div class="search"><input id="home-search" type="search" placeholder="搜索往期日报（标题 / 日期）…" autocomplete="off"></div>
+
+  <section class="sec" id="archive-list">
+    <div class="sec-head"><span class="sec-num c-gray">≡</span><h2>往期日报</h2></div>
+    <div class="edition-list" id="edition-list">
+      {{ range $posts }}
+      <a class="edition-card" href="{{ .RelPermalink }}">
+        <div class="edition-top">
+          <span class="pill dark">{{ .Date.Format "2006-01-02" }}</span>
+          {{ $counts := .Params.counts }}
+          {{ if $counts }}
+            {{ if reflect.IsMap $counts }}
+            <span class="mini-stats">
+              {{ range $t := slice "infra" "agent" "quant" }}
+                {{ $arr := index $counts $t }}
+                {{ $total := 0 }}{{ range $arr }}{{ $total = add $total . }}{{ end }}
+                <span class="mini-stat t-{{ $t }}"><b>{{ $total }}</b> {{ index (dict "infra" "LLM 基础设施" "agent" "AI Agent" "quant" "量化投资") $t }}</span>
+              {{ end }}
+            </span>
+            {{ else }}
+            <span class="mini-stats">
+              {{ range $i, $c := $counts }}
+              <span class="mini-stat s-{{ index $keys $i }}"><b>{{ $c }}</b> {{ index $labels $i }}</span>
+              {{ end }}
+            </span>
+            {{ end }}
+          {{ end }}
+        </div>
+        <div class="edition-title">{{ .Params.headline | default .Title }}</div>
+        {{ with .Params.lede }}<div class="edition-lede">{{ . }}</div>{{ end }}
+        <div class="arch-more">查看本期 →</div>
+      </a>
+      {{ end }}
+    </div>
+  </section>
 
   <script>
   document.addEventListener('DOMContentLoaded', function () {
